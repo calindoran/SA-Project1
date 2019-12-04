@@ -46,11 +46,6 @@
 				isSucess INT NOT NULL DEFAULT (0),
 				timestamp timestamp NOT NULL DEFAULT NOW(),
 				PRIMARY KEY(id)) DEFAULT CHARSET=utf8mb4;") or exit($db->error);
-
-		// creates the log table
-		// $db->query(
-		// 	"CREATE TABLE IF NOT EXISTS registration.log(
-		// 		log VARCHAR(100) NOT NULL );") or exit($db->error);
 	}
 
 	// connect to database
@@ -68,22 +63,19 @@
 		if (empty($username)) { array_push($errors, "Username is required"); }
 		if (empty($email)) { array_push($errors, "Email is required"); }
 		if (empty($password_1)) { array_push($errors, "Password is required"); }
+
+		if ($password_1 != $password_2) {
+			array_push($errors, "The two passwords do not match");
+		}
 		
 		$uppercase = preg_match('@[A-Z]@', $password_1);
         $lowercase = preg_match('@[a-z]@', $password_1);
         $number    = preg_match('@[0-9]@', $password_1);
 		$specialChars = preg_match('@[^\w]@', $password_1);
 		
-		if ($password_1 != $password_2) {
-			array_push($errors, "The two passwords do not match");
-		}
-		
         if(!$uppercase || !$lowercase || !$number || !$specialChars || strlen($password) < 8) {
-			echo "<script>
-					alert ('Password should be at least 8 characters in length and should include at least one upper case letter, one number, and one special character.');
-					window.location.href = 'register.php';
-					</script>";
-			exit();
+			array_push($errors, "Password should be at least 8 characters in length
+			 and should include at least one upper case letter, one number, and one special character.");
         }
 
 		// check the database if a user does not already exist
@@ -113,7 +105,6 @@
 			$_SESSION['success'] = "You are now logged in";
 			header('location: index.php');
 		}
-
 	}
 
 	// LOGIN USER
@@ -157,21 +148,20 @@
 			$currentTime = time();
 			// session timeout lenght
 			if (($currentTime - $_SESSION['lockoutTime']) < 180 && $_SESSION['lockout'] == true) {
-				echo "<script>
-								alert ('You are within Lockout timeframe. Please try again later.');
-										window.location.href = 'login.php';
-										</script>";
-			} else {
+				array_push($errors, "You are within Lockout timeframe. Please try again later.");
+				
+			} 
+			else {
 				$_SESSION['lockout'] = false;
 				// checking empty forms
 				if (empty($username) || empty($password)) {
-					header("Location: login.php");
+					header("location: login.php");
 					exit();
 				} 
 				else {
 					$sql = "SELECT * FROM users WHERE username=?";
 					if (!mysqli_stmt_prepare($stmt, $sql)) {
-						header("Location: login.php");
+						header("location: login.php");
 						exit();
 					} 
 					else {
@@ -200,15 +190,12 @@
 									// user is locked out, set Lockout to true and record lockout time
 									$_SESSION['lockout'] = true;
 									$_SESSION['lockoutTime'] = time();
-									echo "<script>
-										alert ('You are locked out.');
-												window.location.href = 'login.php';
-												</script>";
+									array_push($errors, "You are locked out.");
 								}
 								// else, if user is not locked out
 								else {
 									if ($_SESSION['count'][0] != 5) {
-										echo "You have " . (5 - $_SESSION['count'][0]) . " attempts remaining";
+										array_push($errors, "You have " . (5 - $_SESSION['count'][0]) . " attempts remaining");
 									}
 								}
 							} 
