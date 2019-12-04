@@ -68,14 +68,15 @@
 		if (empty($username)) { array_push($errors, "Username is required"); }
 		if (empty($email)) { array_push($errors, "Email is required"); }
 		if (empty($password_1)) { array_push($errors, "Password is required"); }
+		
+		$uppercase = preg_match('@[A-Z]@', $password_1);
+        $lowercase = preg_match('@[a-z]@', $password_1);
+        $number    = preg_match('@[0-9]@', $password_1);
+		$specialChars = preg_match('@[^\w]@', $password_1);
+		
 		if ($password_1 != $password_2) {
 			array_push($errors, "The two passwords do not match");
 		}
-
-		$uppercase = preg_match('@[A-Z]@', $password);
-        $lowercase = preg_match('@[a-z]@', $password);
-        $number    = preg_match('@[0-9]@', $password);
-		$specialChars = preg_match('@[^\w]@', $password);
 		
         if(!$uppercase || !$lowercase || !$number || !$specialChars || strlen($password) < 8) {
 			echo "<script>
